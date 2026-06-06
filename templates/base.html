@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AmulNutriAI - AI Nutrition Assistant{% endblock %}</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/static/images/products/placeholder.png">
+    <!-- Main CSS stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block styles %}{% endblock %}
+</head>
+<body>
+
+    <!-- Header / Navbar -->
+    <header>
+        <div class="nav-container">
+            <a href="/" class="logo">
+                Amul<span>NutriAI</span>
+            </a>
+            
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="/catalog">Product Catalog</a></li>
+                    <li><a href="/scanner">Image Scanner</a></li>
+                    <li><a href="/diet">Diet Profile</a></li>
+                    <li><a href="/planner">Meal Planner</a></li>
+                </ul>
+            </nav>
+            
+            <div class="nav-auth">
+                {% if session.get('user_id') %}
+                    <span class="user-badge {% if session.get('role') == 'admin' %}admin-badge{% endif %}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16" style="vertical-align: -2px; margin-right: 5px; opacity: 0.85;"><path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6"/></svg>{{ session.get('name') }}
+                    </span>
+                    {% if session.get('role') == 'admin' %}
+                        <a href="/admin" class="btn btn-secondary btn-sm">Admin Panel</a>
+                    {% endif %}
+                    <a href="/logout" class="btn btn-secondary">Logout</a>
+                {% else %}
+                    <a href="/login" class="btn btn-secondary">Login</a>
+                    <a href="/register" class="btn btn-primary">Register</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <!-- Flash Notifications -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-container">
+                {% for category, message in messages %}
+                    <div class="flash-message flash-{{ category if category != 'error' else 'danger' }}">
+                        <span>{{ message }}</span>
+                        <button class="flash-close">&times;</button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Main Content Block -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2026 AmulNutriAI. Empowering healthier choices with Amul Dairy & AI.</p>
+        <p style="font-size: 0.8rem; margin-top: 0.5rem; opacity: 0.5;">Powered by OpenRouter & Gemini 2.0 Flash</p>
+    </footer>
+
+    <!-- Fullscreen Loading Overlay (used by subpages) -->
+    <div id="global-loader" class="loading-overlay">
+        <div class="spinner"></div>
+        <div class="loading-text" id="global-loader-text">Analyzing with AI...</div>
+    </div>
+
+    <!-- Main Global Scripts -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
