@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}AI Meal Planner - AmulNutriAI{% endblock %}
+
+{% block content %}
+<div class="planner-container">
+    <div style="text-align: center; margin-bottom: 2rem;">
+        <h2>AI-Powered Weekly Meal Planner</h2>
+        <p style="color: var(--text-secondary);">Generate structured Indian meal plans utilizing Amul dairy products tailored to your goals</p>
+    </div>
+    
+    <!-- Planner Option Form -->
+    <div class="planner-form-card">
+        <form id="meal-planner-form">
+            <div class="grid-2col">
+                <div class="form-group">
+                    <label for="plan-goal">Target Nutrition Goal</label>
+                    <select id="plan-goal" name="goal" class="form-control" required>
+                        <option value="weight_loss" {% if profile and profile.goal == 'weight_loss' %}selected{% endif %}>Weight Loss (Calorie Deficit)</option>
+                        <option value="muscle_gain" {% if profile and profile.goal == 'muscle_gain' %}selected{% endif %}>Muscle Gain (High Protein)</option>
+                        <option value="maintenance" {% if profile and profile.goal == 'maintenance' %}selected{% endif %}>Weight Maintenance (Clean Eating)</option>
+                        <option value="diabetes" {% if profile and profile.goal == 'diabetes' %}selected{% endif %}>Diabetic Friendly (Low Sugar/Low Glycemic)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="plan-days">Duration</label>
+                    <select id="plan-days" name="days" class="form-control" required>
+                        <option value="7">Full Week Plan (7 Days)</option>
+                        <option value="3">Quick Plan (3 Days)</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="plan-restriction">Dietary Restrictive Target</label>
+                <select id="plan-restriction" name="restriction" class="form-control" required>
+                    <option value="none">None (Balanced Dairy Mix)</option>
+                    <option value="vegetarian" {% if profile and profile.diet_type == 'vegetarian' %}selected{% endif %}>Pure Vegetarian</option>
+                    <option value="low_sodium">Low Sodium / Low Hypertension Risk</option>
+                    <option value="low_fat">Low Fat (Double-Toned / Slim milk focus)</option>
+                </select>
+            </div>
+            
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Generate Custom Meal Plan</button>
+        </form>
+    </div>
+    
+    <!-- Meal Plan Display Panel -->
+    <div class="planner-table-container" id="planner-table-container">
+        <div class="planner-table-header">
+            <div>
+                <h3 id="plan-display-title">Custom Amul Meal Plan</h3>
+                <p style="font-size: 0.85rem; opacity: 0.9; margin-top: 0.2rem;" id="plan-display-meta">Goal: Weight Loss | Plan: 7 Days</p>
+            </div>
+            <!-- Download Button -->
+            <button id="download-pdf-btn" class="btn btn-secondary btn-sm" style="background-color: rgba(255, 255, 255, 0.2); border: 1px solid #ffffff; color: #ffffff;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16" style="vertical-align: -1px; margin-right: 6px;"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"/></svg>Save / Download PDF
+            </button>
+        </div>
+        
+        <table class="planner-table">
+            <thead>
+                <tr>
+                    <th>Day</th>
+                    <th>Breakfast</th>
+                    <th>Lunch</th>
+                    <th>Dinner</th>
+                    <th>Snack</th>
+                </tr>
+            </thead>
+            <tbody id="planner-table-body">
+                <!-- Dynamically generated rows -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Recipe Modal Overlay -->
+<div id="recipe-modal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:2000; align-items:center; justify-content:center; backdrop-filter: blur(5px); animation: fadeIn 0.2s ease;">
+    <div class="modal-card" style="background:#ffffff; border-radius:18px; width:90%; max-width:500px; max-height:80vh; display:flex; flex-direction:column; overflow:hidden; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 10px 10px -5px rgba(0, 0, 0, 0.04); position:relative; animation: slideUp 0.3s ease; padding: 0;">
+        <div class="modal-header" style="padding:1.2rem 1.5rem; border-bottom:1px solid #f3f4f6; display:flex; justify-content:space-between; align-items:center;">
+            <h3 id="modal-recipe-title" style="margin:0; font-size:1.2rem; color:var(--text-primary); font-family:'Poppins', sans-serif;">Recipe Details</h3>
+            <button onclick="closeRecipeModal()" style="background:none; border:none; font-size:1.8rem; cursor:pointer; color:var(--text-light); transition:color 0.2s; line-height: 1;">&times;</button>
+        </div>
+        <div id="modal-recipe-body" style="padding:1.5rem; overflow-y:auto; flex-grow:1; text-align: left; font-size: 0.9rem;">
+            <!-- Recipes populated dynamically -->
+        </div>
+    </div>
+</div>
+
+<style>
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+.meal-recipe-box {
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.meal-recipe-box:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md) !important;
+    background: #f7f9fc !important;
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/planner.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Products - Admin - AmulNutriAI{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="admin-header">
+        <div>
+            <h2>Manage Amul Products</h2>
+            <p style="color: var(--text-secondary);">Add, edit, or remove catalog items</p>
+        </div>
+        <div class="admin-actions">
+            <button class="btn btn-primary" onclick="openModal('add-modal')">+ Add Product</button>
+            <a href="/admin" class="btn btn-secondary">Back to Dashboard</a>
+        </div>
+    </div>
+    
+    <div class="admin-table-card">
+        <div style="overflow-x: auto;">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Calories</th>
+                        <th>Grade</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in products %}
+                    <tr>
+                        <td>#{{ p.id }}</td>
+                        <td style="font-weight: 600;">{{ p.name }}</td>
+                        <td>{{ p.category }}</td>
+                        <td>{{ p.calories }} kcal</td>
+                        <td>
+                            <span class="grade-badge" style="width: 28px; height: 28px; font-size: 0.8rem;" data-grade="{{ p.nutrition_grade }}">{{ p.nutrition_grade }}</span>
+                        </td>
+                        <td>
+                            <div class="admin-actions">
+                                                                <button class="btn btn-secondary btn-sm" onclick="openEditModal({{ p.id }}, '{{ p.name|replace('\'','\\\'') }}', '{{ p.category }}', '{{ p.image_url }}', {{ p.calories }}, {{ p.protein }}, {{ p.fat }}, {{ p.carbs }}, {{ p.sugar }}, {{ p.sodium }}, '{{ p.serving_size }}', '{{ p.description|replace('\'','\\\'') }}', '{{ p.recipes|replace('\'','\\\'') }}')">Edit</button>>Edit</button>
+                                <form action="/admin/products/delete/{{ p.id }}" method="POST" style="display:inline;" onsubmit="return confirm('Delete this product?');">
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 2rem;">No products found in the database.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add Product Modal -->
+<div class="modal" id="add-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Add New Product</h3>
+            <button class="modal-close" onclick="closeModal('add-modal')">&times;</button>
+        </div>
+        <form action="/admin/products/add" method="POST">
+            <div class="grid-2col">
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" name="name" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <input type="text" name="category" class="form-control" required>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Image URL (or leave empty for default)</label>
+                <input type="text" name="image_url" class="form-control" placeholder="/static/images/products/placeholder.png">
+            </div>
+            
+            <div class="grid-2col">
+                <div class="form-group">
+                    <label>Calories (kcal)</label>
+                    <input type="number" step="0.1" name="calories" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Serving Size</label>
+                    <input type="text" name="serving_size" class="form-control" placeholder="e.g. 200 ml" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Protein (g)</label>
+                    <input type="number" step="0.1" name="protein" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Fat (g)</label>
+                    <input type="number" step="0.1" name="fat" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Carbs (g)</label>
+                    <input type="number" step="0.1" name="carbs" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Sugar (g)</label>
+                    <input type="number" step="0.1" name="sugar" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Sodium (mg)</label>
+                    <input type="number" step="0.1" name="sodium" class="form-control" required>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Recipes (JSON array)</label>
+                <textarea name="recipes" class="form-control" rows="3" placeholder='[{"title":"Recipe 1","ingredients":["..."],"steps":["..."]}]'></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Add Product</button>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Product Modal -->
+<div class="modal" id="edit-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Edit Product</h3>
+            <button class="modal-close" onclick="closeModal('edit-modal')">&times;</button>
+        </div>
+        <form id="edit-form" method="POST">
+            <div class="grid-2col">
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" id="edit-name" name="name" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <input type="text" id="edit-category" name="category" class="form-control" required>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Image URL</label>
+                <input type="text" id="edit-image" name="image_url" class="form-control">
+            </div>
+            
+            <div class="grid-2col">
+                <div class="form-group">
+                    <label>Calories (kcal)</label>
+                    <input type="number" step="0.1" id="edit-calories" name="calories" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Serving Size</label>
+                    <input type="text" id="edit-serving" name="serving_size" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Protein (g)</label>
+                    <input type="number" step="0.1" id="edit-protein" name="protein" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Fat (g)</label>
+                    <input type="number" step="0.1" id="edit-fat" name="fat" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Carbs (g)</label>
+                    <input type="number" step="0.1" id="edit-carbs" name="carbs" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Sugar (g)</label>
+                    <input type="number" step="0.1" id="edit-sugar" name="sugar" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Sodium (mg)</label>
+                    <input type="number" step="0.1" id="edit-sodium" name="sodium" class="form-control" required>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Recipes (JSON array)</label>
+                <textarea id="edit-recipes" name="recipes" class="form-control" rows="3" placeholder='[{"title":"Recipe 1","ingredients":["..."],"steps":["..."]}]'></textarea>
+            </div>
+            
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Save Changes</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function openModal(id) {
+        document.getElementById(id).classList.add('active');
+    }
+
+    function closeModal(id) {
+        document.getElementById(id).classList.remove('active');
+    }
+
+    function openEditModal(id, name, category, image, cal, prot, fat, carbs, sugar, sod, serving, desc, recipes) {
+        document.getElementById('edit-form').action = '/admin/products/edit/' + id;
+        document.getElementById('edit-name').value = name;
+        document.getElementById('edit-category').value = category;
+        document.getElementById('edit-image').value = image || '';
+        document.getElementById('edit-calories').value = cal;
+        document.getElementById('edit-protein').value = prot;
+        document.getElementById('edit-fat').value = fat;
+        document.getElementById('edit-carbs').value = carbs;
+        document.getElementById('edit-sugar').value = sugar;
+        document.getElementById('edit-sodium').value = sod;
+        document.getElementById('edit-serving').value = serving;
+        document.getElementById('edit-desc').value = desc;
+        document.getElementById('edit-recipes').value = recipes || '[]';
+        openModal('edit-modal');
+    }
+</script>
+{% endblock %}

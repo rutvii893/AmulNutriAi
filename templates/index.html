@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Home - AmulNutriAI: AI Nutrition Assistant{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <div class="hero-text">
+        <h1>Personalized Nutrition Powered by <span>Amul</span> & AI</h1>
+        <p>Scan Amul products, track ingredients, obtain AI-curated health recommendations, and generate custom meal plans using dairy-powered nutrition guides.</p>
+        <div class="hero-cta">
+            <a href="/scanner" class="btn btn-primary">Scan a Product</a>
+            <a href="/catalog" class="btn btn-secondary">Explore Products</a>
+        </div>
+    </div>
+    <div class="hero-image">
+        <img src="/static/images/products/placeholder.png" alt="Amul Products concept">
+    </div>
+</div>
+
+<div class="features-section">
+    <h2 class="section-title">Wholesome AI Features</h2>
+    <div class="features-grid">
+        <!-- Feature 1: Scanner -->
+        <div class="feature-card">
+            <span class="feature-icon">📸</span>
+            <h3>Image Scanner</h3>
+            <p>Upload or drag images of Amul packages to extract calories, macros, sugars, and instantly verify dietary compatibility using Gemini Vision.</p>
+            <a href="/scanner" class="btn btn-secondary" style="margin-top: 1.5rem; width: 100%;">Open Scanner</a>
+        </div>
+        
+        <!-- Feature 2: Diet Profile -->
+        <div class="feature-card">
+            <span class="feature-icon">🥗</span>
+            <h3>Diet Profile Advisor</h3>
+            <p>Build your customized metabolic and fitness profile. Receive immediate, certified advisor verdicts on which Amul products to consume or limit.</p>
+            <a href="/diet" class="btn btn-secondary" style="margin-top: 1.5rem; width: 100%;">Set Up Profile</a>
+        </div>
+        
+        <!-- Feature 3: Meal Planner -->
+        <div class="feature-card">
+            <span class="feature-icon">📅</span>
+            <h3>AI Meal Planner</h3>
+            <p>Generate a structured 3 or 7-day Indian meal plan focused on utilizing Amul dairy nutrients, complete with portions and recipes. Print/Save to PDF.</p>
+            <a href="/planner" class="btn btn-secondary" style="margin-top: 1.5rem; width: 100%;">Create Plan</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

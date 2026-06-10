@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}Product Image Scanner - AmulNutriAI{% endblock %}
+
+{% block content %}
+<div class="scanner-container">
+    <div style="text-align: center; margin-bottom: 2rem;">
+        <h2>Amul Product Image Scanner</h2>
+        <p style="color: var(--text-secondary);">Upload or drag a photo of an Amul product label to scan nutritional facts with Gemini Vision</p>
+    </div>
+    
+    <!-- Drag and Drop Zone -->
+    <div class="upload-zone" id="upload-zone">
+        <span class="upload-icon">📸</span>
+        <p class="upload-text">Drag and drop your product image here, or click to browse</p>
+        <p class="upload-subtext">Supports PNG, JPG, JPEG (Max. 5MB)</p>
+        <input type="file" id="file-input" accept="image/*" style="display: none;">
+    </div>
+    
+    <!-- Image Preview Card -->
+    <div class="preview-container" id="preview-container">
+        <div class="preview-img-wrapper">
+            <img id="preview-image" src="" alt="Selected Product Preview">
+        </div>
+        <div class="preview-actions">
+            <button id="reset-btn" class="btn btn-secondary">Clear Image</button>
+            <button id="scan-btn" class="btn btn-primary">
+                <span class="spinner" id="scan-spinner" style="display: none;"></span>
+                <span id="scan-btn-text">Analyze Product</span>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Results Card -->
+    <div class="result-card" id="result-card">
+        <div class="result-header">
+            <div class="result-title-section">
+                <h3 id="res-product-name">Product Name</h3>
+                <span class="result-subtitle" id="res-category">Category</span>
+            </div>
+            <!-- Dynamic suitability badge based on health profile -->
+            <div class="suitability-badge neutral" id="res-suit-badge">Profile Suitability</div>
+        </div>
+        
+        <div class="result-body">
+            <!-- Left: Nutrition Table -->
+            <div>
+                <h4 class="detail-section-title" style="margin-bottom: 0.8rem;">Nutritional Value (Per Serving)</h4>
+                <table class="result-nutrition-table">
+                    <tr>
+                        <th>Nutrient</th>
+                        <th>Amount</th>
+                    </tr>
+                    <tr>
+                        <td>Serving Size</td>
+                        <td id="res-serving" style="font-weight: 600;">-</td>
+                    </tr>
+                    <tr>
+                        <td>Calories</td>
+                        <td id="res-calories" style="font-weight: 600;">-</td>
+                    </tr>
+                    <tr>
+                        <td>Protein</td>
+                        <td id="res-protein" style="font-weight: 600;">-</td>
+                    </tr>
+                    <tr>
+                        <td>Fat</td>
+                        <td id="res-fat" style="font-weight: 600;">-</td>
+                    </tr>
+                    <tr>
+                        <td>Carbohydrates</td>
+                        <td id="res-carbs" style="font-weight: 600;">-</td>
+                    </tr>
+                    <tr>
+                        <td>Sugar</td>
+                        <td id="res-sugar" style="font-weight: 600;">-</td>
+                    </tr>
+                    <tr>
+                        <td>Sodium</td>
+                        <td id="res-sodium" style="font-weight: 600;">-</td>
+                    </tr>
+                </table>
+            </div>
+            
+            <!-- Right: AI Feedback / Database Match -->
+            <div class="result-details">
+                <div>
+                    <h4 class="detail-section-title">Nutri-Score Grade</h4>
+                    <!-- Large circular badge in details -->
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-top: 0.5rem;">
+                        <div class="grade-badge" id="res-grade-badge" data-grade="A" data-tooltip="Grade explanation" style="width: 50px; height: 50px; font-size: 1.5rem;">A</div>
+                        <span id="res-grade-desc" style="font-weight: 500; font-size: 0.95rem; color: var(--text-secondary);">Healthy choice</span>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="detail-section-title">Database Match</h4>
+                    <p class="detail-text" id="res-match-text">Verifying match status...</p>
+                </div>
+                
+                <div>
+                    <h4 class="detail-section-title">Dietary Advice</h4>
+                    <p class="detail-text" id="res-advice-text" style="background-color: var(--primary-light); color: var(--text-primary); border-left: 4px solid var(--primary-color);">
+                        Log in and set up your Diet Profile to get personalized product recommendations.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/scanner.js') }}"></script>
+{% endblock %}

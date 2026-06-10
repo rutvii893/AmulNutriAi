@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+
+{% block title %}Product Catalog - AmulNutriAI{% endblock %}
+
+{% block content %}
+<div class="catalog-header">
+    <div>
+        <h2>Amul Product Catalog</h2>
+        <p style="color: var(--text-secondary);">Browse wholesome Amul items and their certified Nutri-Scores</p>
+    </div>
+</div>
+
+<div class="catalog-filters">
+    <input type="text" id="catalog-search" class="filter-input" placeholder="Search products by name (e.g. Butter)...">
+    
+    <select id="catalog-category" class="filter-select">
+        <option value="all">All Categories</option>
+        <option value="milk">Milk</option>
+        <option value="butter">Butter</option>
+        <option value="cheese">Cheese</option>
+        <option value="dahi">Dahi</option>
+        <option value="lassi">Lassi</option>
+        <option value="ice cream">Ice Cream</option>
+        <option value="paneer">Paneer</option>
+        <option value="ghee">Ghee</option>
+        <option value="dessert">Desserts & Mixes</option>
+        <option value="other">Drinks & Others</option>
+    </select>
+</div>
+
+<div class="products-grid" id="catalog-grid">
+    {% for product in products %}
+    <!-- Data attributes for easy JS filtering -->
+    <div class="product-card" 
+         data-name="{{ product.name.lower() }}" 
+         data-category="{{ product.category.lower() }}"
+         data-grade="{{ product.nutrition_grade }}">
+         
+        <div class="product-img-wrapper">
+            <img src="{{ product.image_url }}" alt="{{ product.name }}" onerror="this.src='/static/images/products/placeholder.png'">
+            
+            <div class="grade-badge-overlay">
+                <!-- Color pill badge with tooltip explaining what it means -->
+                <div class="grade-badge" 
+                     data-grade="{{ product.nutrition_grade }}"
+                     data-tooltip="Nutri-Score Grade {{ product.nutrition_grade }} (A is healthiest, E is least healthy)">
+                    {{ product.nutrition_grade }}
+                </div>
+            </div>
+        </div>
+        
+        <div class="product-info">
+            <span class="product-category">{{ product.category }}</span>
+            <h3 class="product-name">{{ product.name }}</h3>
+            <p class="product-description">{{ product.description }}</p>
+            
+            <div class="product-nutrition-summary">
+                <div class="nutrition-item">
+                    <span class="nutrition-val">{{ product.calories | int }}</span>
+                    <span class="nutrition-label">kcal</span>
+                </div>
+                <div class="nutrition-item">
+                    <span class="nutrition-val">{{ product.protein }}g</span>
+                    <span class="nutrition-label">Prot</span>
+                </div>
+                <div class="nutrition-item">
+                    <span class="nutrition-val">{{ product.fat }}g</span>
+                    <span class="nutrition-label">Fat</span>
+                </div>
+                <div class="nutrition-item">
+                    <span class="nutrition-val">{{ product.sugar }}g</span>
+                    <span class="nutrition-label">Sugar</span>
+                </div>
+            </div>
+            
+            <div class="product-recipes-section" style="margin-top: 1rem; border-top: 1px dashed var(--border-color); padding-top: 1rem;">
+                <button class="btn btn-secondary btn-sm" 
+                        style="width: 100%; font-size: 0.85rem; padding: 0.4rem 0.8rem; display: flex; align-items: center; justify-content: center; gap: 0.3rem; border-radius: var(--radius-sm);"
+                        onclick="showProductRecipes({{ product.id }}, '{{ product.name | escape }}', this)">
+                    <span>📖 View Recipes</span>
+                </button>
+                <script type="application/json" class="product-recipes-json">
+                    {{ product.recipes | safe if product.recipes else '[]' }}
+                </script>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--text-light);">
+        <p>No active products found in the catalog.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Recipe Modal Overlay -->
+<div id="recipe-modal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:2000; align-items:center; justify-content:center; backdrop-filter: blur(5px); animation: fadeIn 0.2s ease;">
+    <div class="modal-card" style="background:#ffffff; border-radius:18px; width:90%; max-width:600px; max-height:85vh; display:flex; flex-direction:column; overflow:hidden; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 10px 10px -5px rgba(0, 0, 0, 0.04); position:relative; animation: slideUp 0.3s ease; padding: 0;">
+        <div class="modal-header" style="padding:1.5rem; border-bottom:1px solid #f3f4f6; display:flex; justify-content:space-between; align-items:center;">
+            <h3 id="modal-product-name" style="margin:0; font-size:1.3rem; color:var(--text-primary); font-family:'Poppins', sans-serif;">Product Recipes</h3>
+            <button onclick="closeRecipeModal()" style="background:none; border:none; font-size:1.8rem; cursor:pointer; color:var(--text-light); transition:color 0.2s; line-height: 1;">&times;</button>
+        </div>
+        <div id="modal-recipe-body" style="padding:1.5rem; overflow-y:auto; flex-grow:1; text-align: left;">
+            <!-- Recipes populated dynamically -->
+        </div>
+    </div>
+</div>
+
+<style>
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const searchInput = document.getElementById("catalog-search");
+        const categorySelect = document.getElementById("catalog-category");
+        const productCards = document.querySelectorAll(".product-card");
+
+        function filterProducts() {
+            const query = searchInput.value.trim().toLowerCase();
+            const selectedCat = categorySelect.value;
+
+            productCards.forEach(card => {
+                const name = card.getAttribute("data-name");
+                const category = card.getAttribute("data-category");
+
+                let matchesSearch = name.includes(query);
+                let matchesCategory = false;
+
+                if (selectedCat === "all") {
+                    matchesCategory = true;
+                } else if (selectedCat === "other") {
+                    // Match shake, buttermilk, protein drink
+                    matchesCategory = category.includes("shake") || 
+                                      category.includes("buttermilk") || 
+                                      category.includes("drink") || 
+                                      category.includes("cream");
+                } else if (selectedCat === "dessert") {
+                    matchesCategory = category.includes("dessert") || category.includes("mix") || category.includes("shrikhand") || category.includes("basundi");
+                } else {
+                    matchesCategory = category.includes(selectedCat);
+                }
+
+                if (matchesSearch && matchesCategory) {
+                    card.style.display = "flex";
+                } else {
+                    card.style.display = "none";
+                }
+            });
+        }
+
+        searchInput.addEventListener("input", filterProducts);
+        categorySelect.addEventListener("change", filterProducts);
+    });
+
+    function showProductRecipes(productId, productName, btn) {
+        // Track view in the background
+        fetch(`/api/products/${productId}/view`, { method: "POST" }).catch(e => console.error("Error logging product view:", e));
+
+        const parent = btn.parentElement;
+        const jsonEl = parent.querySelector(".product-recipes-json");
+        const modal = document.getElementById("recipe-modal");
+        const nameEl = document.getElementById("modal-product-name");
+        const bodyEl = document.getElementById("modal-recipe-body");
+
+        nameEl.textContent = `${productName} - Recipes 🍽️`;
+        bodyEl.innerHTML = "";
+
+        try {
+            const recipes = JSON.parse(jsonEl.textContent.trim());
+            if (recipes && recipes.length > 0) {
+                recipes.forEach((r, idx) => {
+                    const recipeBox = document.createElement("div");
+                    recipeBox.style.marginBottom = "1.5rem";
+                    recipeBox.style.background = "#fafafa";
+                    recipeBox.style.padding = "1.2rem";
+                    recipeBox.style.borderRadius = "12px";
+                    recipeBox.style.borderLeft = "4px solid var(--primary-color)";
+                    recipeBox.style.boxShadow = "var(--shadow-sm)";
+
+                    const title = document.createElement("h4");
+                    title.textContent = `${idx + 1}. ${r.title || "Recipe"}`;
+                    title.style.margin = "0 0 0.8rem 0";
+                    title.style.color = "var(--primary-color)";
+                    title.style.fontSize = "1.1rem";
+                    title.style.fontFamily = "'Poppins', sans-serif";
+                    recipeBox.appendChild(title);
+
+                    if (r.ingredients && r.ingredients.length > 0) {
+                        const ingTitle = document.createElement("strong");
+                        ingTitle.textContent = "Ingredients:";
+                        ingTitle.style.display = "block";
+                        ingTitle.style.marginBottom = "0.3rem";
+                        ingTitle.style.fontSize = "0.85rem";
+                        recipeBox.appendChild(ingTitle);
+
+                        const ingList = document.createElement("ul");
+                        ingList.style.paddingLeft = "1.2rem";
+                        ingList.style.marginBottom = "0.8rem";
+                        ingList.style.color = "var(--text-secondary)";
+                        ingList.style.fontSize = "0.85rem";
+                        r.ingredients.forEach(i => {
+                            const li = document.createElement("li");
+                            li.textContent = i;
+                            ingList.appendChild(li);
+                        });
+                        recipeBox.appendChild(ingList);
+                    }
+
+                    if (r.steps && r.steps.length > 0) {
+                        const stepsTitle = document.createElement("strong");
+                        stepsTitle.textContent = "Preparation Steps:";
+                        stepsTitle.style.display = "block";
+                        stepsTitle.style.marginBottom = "0.3rem";
+                        stepsTitle.style.fontSize = "0.85rem";
+                        recipeBox.appendChild(stepsTitle);
+
+                        const stepsList = document.createElement("ol");
+                        stepsList.style.paddingLeft = "1.2rem";
+                        stepsList.style.color = "var(--text-secondary)";
+                        stepsList.style.fontSize = "0.85rem";
+                        r.steps.forEach(s => {
+                            const li = document.createElement("li");
+                            li.textContent = s;
+                            stepsList.appendChild(li);
+                        });
+                        recipeBox.appendChild(stepsList);
+                    }
+
+                    bodyEl.appendChild(recipeBox);
+                });
+            } else {
+                bodyEl.innerHTML = "<p style='color: var(--text-light); font-style: italic; text-align:center;'>No recipes available for this product.</p>";
+            }
+        } catch (e) {
+            console.error(e);
+            bodyEl.innerHTML = "<p style='color: var(--grade-e); text-align:center;'>Error loading recipes.</p>";
+        }
+
+        modal.style.display = "flex";
+    }
+
+    function closeRecipeModal() {
+        document.getElementById("recipe-modal").style.display = "none";
+    }
+
+    // Close modal on clicking outside
+    document.getElementById("recipe-modal").addEventListener("click", (e) => {
+        if (e.target.id === "recipe-modal") {
+            closeRecipeModal();
+        }
+    });
+</script>
+{% endblock %}

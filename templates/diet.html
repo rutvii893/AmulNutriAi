@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}Diet Profile Advisor - AmulNutriAI{% endblock %}
+
+{% block content %}
+<div class="diet-container">
+    <div style="text-align: center; margin-bottom: 2rem;">
+        <h2>Personalized Diet Profile Advisor</h2>
+        <p style="color: var(--text-secondary);">Set up your health details to receive custom AI assessments for all Amul catalog products</p>
+    </div>
+    
+    <!-- Multi-step Wizard Indicator -->
+    <div class="step-indicator" id="step-indicator">
+        <div class="step-bubble active" data-step="1">
+            1
+            <span class="step-label">Personal Info</span>
+        </div>
+        <div class="step-bubble" data-step="2">
+            2
+            <span class="step-label">Goals & Diet</span>
+        </div>
+        <div class="step-bubble" data-step="3">
+            3
+            <span class="step-label">Health Metrics</span>
+        </div>
+    </div>
+    
+    <!-- Profile Form -->
+    <form class="diet-form" id="diet-profile-form">
+        <!-- Step 1: Personal Info -->
+        <div class="form-step active" data-step="1">
+            <h3 style="margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">Step 1: Physical Attributes</h3>
+            
+            <div class="form-group">
+                <label for="age">Age (years)</label>
+                <input type="number" id="age" name="age" class="form-control" min="1" max="120" value="{{ profile.age if profile else '' }}" required placeholder="e.g. 28">
+            </div>
+            
+            <div class="grid-2col">
+                <div class="form-group">
+                    <label for="weight">Weight (kg)</label>
+                    <input type="number" id="weight" name="weight" step="0.1" class="form-control" min="1" max="300" value="{{ profile.weight if profile else '' }}" required placeholder="e.g. 70">
+                </div>
+                
+                <div class="form-group">
+                    <label for="height">Height (cm)</label>
+                    <input type="number" id="height" name="height" class="form-control" min="30" max="250" value="{{ profile.height if profile else '' }}" required placeholder="e.g. 175">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="lifestyle">Lifestyle Activity Level</label>
+                <select id="lifestyle" name="lifestyle" class="form-control" required>
+                    <option value="sedentary" {% if profile and profile.lifestyle == 'sedentary' %}selected{% endif %}>Sedentary (Little to no exercise)</option>
+                    <option value="active" {% if profile and profile.lifestyle == 'active' %}selected{% endif %}>Active (Moderate exercise/daily movement)</option>
+                    <option value="athlete" {% if profile and profile.lifestyle == 'athlete' %}selected{% endif %}>Athlete (High-intensity workout/labor)</option>
+                </select>
+            </div>
+        </div>
+        
+        <!-- Step 2: Goals & Diet Type -->
+        <div class="form-step" data-step="2">
+            <h3 style="margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">Step 2: Nutrition Goals</h3>
+            
+            <div class="form-group">
+                <label for="goal">Primary Health/Fitness Goal</label>
+                <select id="goal" name="goal" class="form-control" required>
+                    <option value="weight_loss" {% if profile and profile.goal == 'weight_loss' %}selected{% endif %}>Weight Loss & Calorie Deficit</option>
+                    <option value="muscle_gain" {% if profile and profile.goal == 'muscle_gain' %}selected{% endif %}>Muscle Gain & High Protein</option>
+                    <option value="maintenance" {% if profile and profile.goal == 'maintenance' %}selected{% endif %}>Weight Maintenance & Clean Eating</option>
+                    <option value="diabetes" {% if profile and profile.goal == 'diabetes' %}selected{% endif %}>Blood Sugar Management (Diabetic Friendly)</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="diet_type">Dietary Preference</label>
+                <select id="diet_type" name="diet_type" class="form-control" required>
+                    <option value="none" {% if profile and profile.diet_type == 'none' %}selected{% endif %}>None (Everything / Flexitarian)</option>
+                    <option value="vegetarian" {% if profile and profile.diet_type == 'vegetarian' %}selected{% endif %}>Vegetarian</option>
+                    <option value="vegan" {% if profile and profile.diet_type == 'vegan' %}selected{% endif %}>Vegan (Avoid all dairy - Alert! Amul is mostly dairy)</option>
+                    <option value="keto" {% if profile and profile.diet_type == 'keto' %}selected{% endif %}>Ketogenic (Low Carb, High Fat)</option>
+                </select>
+            </div>
+        </div>
+        
+        <!-- Step 3: Health Conditions -->
+        <div class="form-step" data-step="3">
+            <h3 style="margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">Step 3: Medical Conditions & Sensitivity</h3>
+            
+            <div class="form-group">
+                <label>Select any relevant health conditions / sensitivities:</label>
+                <div class="checkbox-group">
+                    {% set conditions = profile.health_conditions.split(',') if profile and profile.health_conditions else [] %}
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="conditions" value="diabetes" {% if 'diabetes' in conditions %}checked{% endif %}>
+                        <span>Diabetes</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="conditions" value="hypertension" {% if 'hypertension' in conditions %}checked{% endif %}>
+                        <span>Hypertension (High BP)</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="conditions" value="lactose_sensitivity" {% if 'lactose_sensitivity' in conditions %}checked{% endif %}>
+                        <span>Lactose Sensitivity</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="conditions" value="cholesterol" {% if 'cholesterol' in conditions %}checked{% endif %}>
+                        <span>High Cholesterol</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Navigation Buttons -->
+        <div class="form-actions">
+            <button type="button" id="prev-btn" class="btn btn-secondary" style="visibility: hidden;">Back</button>
+            <button type="button" id="next-btn" class="btn btn-primary">Next</button>
+            <button type="submit" id="submit-btn" class="btn btn-primary" style="display: none;">Save & Get Recommendations</button>
+        </div>
+    </form>
+    
+    <!-- AI Recommendations Display -->
+    <div class="rec-section" id="recommendations-section">
+        <h3 class="section-title" style="margin-top: 2rem;">AI Nutritionist Verdict</h3>
+        
+        <!-- Top Recommended -->
+        <div class="rec-category-title">
+            <span style="color: var(--grade-a);">🟢</span> Top Recommended Amul Products
+        </div>
+        <div class="rec-grid" id="recommended-list">
+            <!-- Dynamic items loaded here -->
+        </div>
+        
+        <!-- Products to Avoid -->
+        <div class="rec-category-title" style="margin-top: 3rem;">
+            <span style="color: var(--grade-e);">🔴</span> Products to Limit or Avoid
+        </div>
+        <div class="rec-grid" id="avoid-list">
+            <!-- Dynamic items loaded here -->
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/diet.js') }}"></script>
+{% endblock %}

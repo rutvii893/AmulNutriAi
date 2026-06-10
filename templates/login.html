@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Login - AmulNutriAI{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <div class="auth-header">
+            <h2>Welcome Back</h2>
+            <p>Access your personalized Amul AI nutrition portal</p>
+        </div>
+        
+        <form action="/login" method="POST">
+            <!-- Save redirect path if it exists -->
+            {% if request.args.get('next') %}
+                <input type="hidden" name="next" value="{{ request.args.get('next') }}">
+            {% endif %}
+            
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" class="form-control" placeholder="name@example.com" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" required>
+            </div>
+            
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Sign In</button>
+        </form>
+        
+        <div class="auth-footer">
+            Don't have an account? <a href="/register">Create one now</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

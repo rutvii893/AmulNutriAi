@@ -1,0 +1,312 @@
+{% extends "base.html" %}
+
+{% block styles %}
+<style>
+    .admin-stat-card {
+        transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        cursor: default;
+    }
+    .admin-stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 20px -5px rgba(0,0,0,0.1), 0 8px 8px -5px rgba(0,0,0,0.04) !important;
+    }
+    .analytics-card {
+        animation: cardFadeIn 0.8s cubic-bezier(0.165, 0.84, 0.44, 1) both;
+    }
+    
+    @keyframes cardFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    /* Staggered load effects */
+    .views-card { animation-delay: 0.1s; }
+    .recs-card { animation-delay: 0.25s; }
+    .goals-card { animation-delay: 0.4s; }
+    .tables-card { animation-delay: 0.55s; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-container" style="max-width: 1200px; margin: 0 auto; padding: 1.5rem;">
+    <!-- Dashboard Header -->
+    <div class="admin-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <div>
+            <h2 style="font-family: 'Poppins', sans-serif; font-size: 1.8rem; font-weight: 700; color: var(--text-primary);">Admin Analytics Dashboard</h2>
+            <p style="color: var(--text-secondary); margin-top: 0.2rem;">Real-time engagement, recommendations, and demographic statistics</p>
+        </div>
+        <div class="admin-actions">
+            <a href="/admin/products" class="btn btn-primary" style="border-radius: 8px; font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem;">
+                📦 Manage Product Catalogue
+            </a>
+        </div>
+    </div>
+    
+    <!-- Top KPI Cards Grid -->
+    <div class="admin-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem;">
+        <div class="admin-stat-card" style="background: var(--bg-surface); padding: 1.5rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 1.2rem;">
+            <div class="stat-icon" style="width: 50px; height: 50px; background: rgba(0, 123, 255, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="#007bff" viewBox="0 0 16 16"><path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1zm-7.978-1L7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002-.014.002zM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4m3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0M6.936 9.28a6 6 0 0 0-1.23-.247A7 7 0 0 0 5 9c-4 0-5 3-5 4q0 1 1 1h4.216A2.24 2.24 0 0 1 5 13c0-1.01.377-2.047 1.09-2.904.243-.294.526-.569.846-.816M4.92 10A5.5 5.5 0 0 0 4 13H1c0-.26.164-1.03.76-1.724C2.3 10.62 3.262 10 5 10q.92 0 1.633.24c-.31.242-.585.514-.802.787zm-1.42-4a2 2 0 1 0 0-4 2 2 0 0 0 0 4m0-5a3 3 0 1 1 0 6 3 3 0 0 1 0-6"/></svg>
+            </div>
+            <div class="stat-info">
+                <h4 style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-light); font-weight: 700; letter-spacing: 0.5px; margin: 0;">Total Users</h4>
+                <div class="stat-number" style="font-size: 1.8rem; font-weight: 800; color: var(--text-primary); line-height: 1.2;">{{ stats.users }}</div>
+            </div>
+        </div>
+        
+        <div class="admin-stat-card" style="background: var(--bg-surface); padding: 1.5rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 1.2rem;">
+            <div class="stat-icon" style="width: 50px; height: 50px; background: rgba(40, 167, 69, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="#28a745" viewBox="0 0 16 16"><path d="M8.186 1.113a.5.5 0 0 0-.372 0L1.846 3.5l2.404.961L10.404 2zm3.564 1.426L5.596 5 8 5.961 14.154 3.5zm.325 1.283L5.88 6.29 5.058 5.96 1.25 4.438v8.083l6.25 2.5 6.25-2.5V4.438zM1.25 3.166l6.25 2.5 6.25-2.5v.004l-6.25 2.5-6.25-2.5z"/></svg>
+            </div>
+            <div class="stat-info">
+                <h4 style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-light); font-weight: 700; letter-spacing: 0.5px; margin: 0;">Active Products</h4>
+                <div class="stat-number" style="font-size: 1.8rem; font-weight: 800; color: var(--text-primary); line-height: 1.2;">{{ stats.products }}</div>
+            </div>
+        </div>
+        
+        <div class="admin-stat-card" style="background: var(--bg-surface); padding: 1.5rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 1.2rem;">
+            <div class="stat-icon" style="width: 50px; height: 50px; background: rgba(255, 193, 7, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="#ffc107" viewBox="0 0 16 16"><path d="M15 12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h1.172a3 3 0 0 0 2.12-.879l.83-.828A1 1 0 0 1 6.827 3h2.344a1 1 0 0 1 .707.293l.828.828A3 3 0 0 0 12.828 5H14a1 1 0 0 1 1 1zM2 4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-1.172a2 2 0 0 1-1.414-.586l-.828-.828A2 2 0 0 0 9.172 2H6.828a2 2 0 0 0-1.414.586l-.828.828A2 2 0 0 1 3.172 4z"/><path d="M8 11a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5m0 1a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7"/></svg>
+            </div>
+            <div class="stat-info">
+                <h4 style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-light); font-weight: 700; letter-spacing: 0.5px; margin: 0;">AI Scans</h4>
+                <div class="stat-number" style="font-size: 1.8rem; font-weight: 800; color: var(--text-primary); line-height: 1.2;">{{ stats.scans }}</div>
+            </div>
+        </div>
+        
+        <div class="admin-stat-card" style="background: var(--bg-surface); padding: 1.5rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 1.2rem;">
+            <div class="stat-icon" style="width: 50px; height: 50px; background: rgba(227, 30, 36, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="#e31e24" viewBox="0 0 16 16"><path d="M11 6.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5zM11.5 9a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zM8 6.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5zM8.5 9a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zM5 6.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5zM5.5 9a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5z"/><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"/></svg>
+            </div>
+            <div class="stat-info">
+                <h4 style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-light); font-weight: 700; letter-spacing: 0.5px; margin: 0;">Meal Plans</h4>
+                <div class="stat-number" style="font-size: 1.8rem; font-weight: 800; color: var(--text-primary); line-height: 1.2;">{{ stats.meal_plans }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row 1: Engagement vs. Recommendations -->
+    <div class="charts-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 2rem; margin-bottom: 2.5rem;">
+        <!-- Top Viewed Chart -->
+        <div class="analytics-card views-card" style="background: var(--bg-surface); padding: 1.5rem; border: 1px solid var(--border-color); border-radius: var(--radius-lg); box-shadow: var(--shadow-md);">
+            <h3 style="margin-bottom: 1.2rem; font-size: 1.1rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem; font-weight: 700;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="var(--primary-color)" viewBox="0 0 16 16" style="vertical-align: -2px; margin-right: 4px;"><path d="M1 11.5a.5.5 0 0 0 .5.5h11a.5.5 0 0 0 .5-.5v-9a.5.5 0 0 0-.5-.5h-11a.5.5 0 0 0-.5.5zm5-4a.5.5 0 0 1 1 0v3a.5.5 0 0 1-1 0zm3-1.5a.5.5 0 0 1 .5.5v4.5a.5.5 0 0 1-1 0V6.5a.5.5 0 0 1 .5-.5m3 2.5a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2a.5.5 0 0 1 .5-.5"/></svg><span>Most Viewed Products</span>
+            </h3>
+            <div style="position: relative; height: 260px; width: 100%;">
+                <canvas id="productViewsChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Top Recommended Chart -->
+        <div class="analytics-card recs-card" style="background: var(--bg-surface); padding: 1.5rem; border: 1px solid var(--border-color); border-radius: var(--radius-lg); box-shadow: var(--shadow-md);">
+            <h3 style="margin-bottom: 1.2rem; font-size: 1.1rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem; font-weight: 700;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="var(--grade-b)" viewBox="0 0 16 16" style="vertical-align: -2px; margin-right: 4px;"><path d="M2.866 14.85c-.078.444.36.791.746.593l4.39-2.256 4.389 2.256c.386.198.824-.149.746-.592l-.83-4.73 3.522-3.356c.33-.314.16-.888-.282-.95l-4.898-.696L8.465.792a.513.513 0 0 0-.927 0L5.354 5.12l-4.898.696c-.441.062-.612.636-.283.95l3.523 3.356-.83 4.73zm4.905-2.767-3.686 1.894.694-3.957-2.933-2.79 4.02-.57L8 3.332l1.792 3.635 4.02.57-2.933 2.79.694 3.957-3.686-1.894z"/></svg><span>Most Recommended Products (AI Adviser)</span>
+            </h3>
+            <div style="position: relative; height: 260px; width: 100%;">
+                <canvas id="productRecsChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row 2: User Goals & Detailed Data Tables -->
+    <div class="charts-row-secondary" style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem; margin-bottom: 3rem;">
+        <!-- User Goals Pie Chart -->
+        <div class="analytics-card goals-card" style="background: var(--bg-surface); padding: 1.5rem; border: 1px solid var(--border-color); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); display: flex; flex-direction: column;">
+            <h3 style="margin-bottom: 1.2rem; font-size: 1.1rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem; font-weight: 700;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="var(--primary-color)" viewBox="0 0 16 16" style="vertical-align: -2px; margin-right: 4px;"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/><path d="M8 13A5 5 0 1 1 8 3a5 5 0 0 1 0 10m0 1A6 6 0 1 0 8 2a6 6 0 0 0 0 12"/><path d="M8 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6m0 1a4 4 0 1 0 0-8 4 4 0 0 0 0 8"/><path d="M9.5 8a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/></svg><span>User Nutritional Goals</span>
+            </h3>
+            <div style="position: relative; height: 240px; width: 100%; flex-grow: 1; display: flex; justify-content: center; align-items: center;">
+                <canvas id="userGoalsChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Analytical Data Tables -->
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+            <!-- Top Viewed Table -->
+            <div class="analytics-card tables-card" style="background: var(--bg-surface); padding: 1.2rem 1.5rem; border: 1px solid var(--border-color); border-radius: var(--radius-lg); box-shadow: var(--shadow-md);">
+                <h4 style="margin-bottom: 0.8rem; font-size: 1rem; color: var(--text-primary); font-weight: 700;">Detailed Product Engagement</h4>
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid var(--border-color); text-align: left; color: var(--text-light);">
+                            <th style="padding: 0.5rem 0; font-weight: 600;">Product Name</th>
+                            <th style="padding: 0.5rem 0; text-align: right; font-weight: 600;">Total Views</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in most_viewed %}
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 0.6rem 0; font-weight: 500; color: var(--text-primary);">{{ p.name }}</td>
+                            <td style="padding: 0.6rem 0; text-align: right; color: var(--primary-color); font-weight: 700; font-size: 0.95rem;">{{ p.views }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="2" style="padding: 1rem 0; text-align: center; color: var(--text-light);">No view logs yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Top Recommended Table -->
+            <div class="analytics-card tables-card" style="background: var(--bg-surface); padding: 1.2rem 1.5rem; border: 1px solid var(--border-color); border-radius: var(--radius-lg); box-shadow: var(--shadow-md);">
+                <h4 style="margin-bottom: 0.8rem; font-size: 1rem; color: var(--text-primary); font-weight: 700;">Detailed AI Recommendations</h4>
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid var(--border-color); text-align: left; color: var(--text-light);">
+                            <th style="padding: 0.5rem 0; font-weight: 600;">Product Name</th>
+                            <th style="padding: 0.5rem 0; text-align: right; font-weight: 600;">Recs Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in most_recommended %}
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 0.6rem 0; font-weight: 500; color: var(--text-primary);">{{ p.name }}</td>
+                            <td style="padding: 0.6rem 0; text-align: right; color: var(--grade-b); font-weight: 700; font-size: 0.95rem;">{{ p.recs }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="2" style="padding: 1rem 0; text-align: center; color: var(--text-light);">No recommendations yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Include Chart.js via CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        // Goals mappings
+        const goalsMap = {
+            'weight_loss': 'Weight Loss',
+            'muscle_gain': 'Muscle Gain',
+            'maintenance': 'Weight Maintenance',
+            'diabetes': 'Blood Sugar Management'
+        };
+
+        // Data bindings from Flask template vars
+        const viewsLabels = {{ most_viewed | map(attribute='name') | list | tojson }};
+        const viewsData = {{ most_viewed | map(attribute='views') | list | tojson }};
+
+        const recsLabels = {{ most_recommended | map(attribute='name') | list | tojson }};
+        const recsData = {{ most_recommended | map(attribute='recs') | list | tojson }};
+
+        const goalsRaw = {{ goals_data | tojson }};
+        const goalsLabels = goalsRaw.map(g => goalsMap[g.goal] || g.goal || 'General Health');
+        const goalsData = goalsRaw.map(g => g.count);
+
+        // 1. Most Viewed Products Bar Chart (Horizontal)
+        const ctxViews = document.getElementById('productViewsChart').getContext('2d');
+        new Chart(ctxViews, {
+            type: 'bar',
+            data: {
+                labels: viewsLabels,
+                datasets: [{
+                    label: 'Product Detail Views',
+                    data: viewsData,
+                    backgroundColor: 'rgba(227, 30, 36, 0.8)', // Amul Red
+                    borderColor: 'rgb(227, 30, 36)',
+                    borderWidth: 1.5,
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: { 
+                        beginAtZero: true,
+                        grid: { drawOnChartArea: false }
+                    },
+                    y: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+
+        // 2. Most Recommended Products Bar Chart (Horizontal)
+        const ctxRecs = document.getElementById('productRecsChart').getContext('2d');
+        new Chart(ctxRecs, {
+            type: 'bar',
+            data: {
+                labels: recsLabels,
+                datasets: [{
+                    label: 'Times Recommended',
+                    data: recsData,
+                    backgroundColor: 'rgba(46, 204, 113, 0.8)', // Nutri Green
+                    borderColor: 'rgb(46, 204, 113)',
+                    borderWidth: 1.5,
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: { 
+                        beginAtZero: true,
+                        grid: { drawOnChartArea: false }
+                    },
+                    y: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+
+        // 3. User Goals Doughnut Chart
+        const ctxGoals = document.getElementById('userGoalsChart').getContext('2d');
+        new Chart(ctxGoals, {
+            type: 'doughnut',
+            data: {
+                labels: goalsLabels,
+                datasets: [{
+                    data: goalsData,
+                    backgroundColor: [
+                        '#E31E24', // Red
+                        '#3498DB', // Blue
+                        '#F1C40F', // Yellow
+                        '#2ECC71'  // Green
+                    ],
+                    borderWidth: 2,
+                    hoverOffset: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            boxWidth: 12,
+                            font: { size: 11, family: 'Inter' }
+                        }
+                    }
+                },
+                cutout: '65%'
+            }
+        });
+    });
+</script>
+{% endblock %}
