@@ -235,6 +235,52 @@ def diet():
     profile = cursor.fetchone()
     return render_template('diet.html', profile=profile)
 
+@app.route('/dashboard')
+@login_required
+def user_dashboard():
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute('SELECT * FROM health_profiles WHERE user_id = ?', (session['user_id'],))
+    profile = cursor.fetchone()
+    
+    # Fetch historical logs
+    cursor.execute('SELECT date, weight, calories_consumed, protein_consumed FROM user_progress_logs WHERE user_id = ? ORDER BY date ASC LIMIT 30', (session['user_id'],))
+    logs = [dict(row) for row in cursor.fetchall()]
+    
+    # Calculate daily targets if profile exists
+    targets = calculate_dietary_targets(profile)
+    
+    return render_template('dashboard.html', profile=profile, logs=logs, targets=targets)
+
+@app.route('/api/progress/log', methods=['POST'])
+@login_required
+def api_progress_log():
+    data = request.get_json()
+    date_str = data.get('date') # Format YYYY-MM-DD
+    weight = data.get('weight')
+    calories = data.get('calories')
+    protein = data.get('protein')
+    
+    if not date_str:
+        return jsonify({'error': 'Date is required'}), 400
+        
+    db = get_db()
+    cursor = db.cursor()
+    
+    # Insert or Update
+    cursor.execute('''
+        INSERT INTO user_progress_logs (user_id, date, weight, calories_consumed, protein_consumed)
+        VALUES (?, ?, ?, ?, ?)
+        ON CONFLICT(user_id, date) DO UPDATE SET 
+            weight=excluded.weight, 
+            calories_consumed=excluded.calories_consumed, 
+            protein_consumed=excluded.protein_consumed,
+            logged_at=CURRENT_TIMESTAMP
+    ''', (session['user_id'], date_str, weight, calories, protein))
+    
+    db.commit()
+    return jsonify({'status': 'success'})
+
 @app.route('/api/diet/profile', methods=['POST'])
 @login_required
 def api_diet_profile():
@@ -391,21 +437,33 @@ def calculate_plan_daily_totals(plan_data):
         day_carbs = 0.0
         
         for meal in day.get('meals', {}).values():
-            prod_name = meal.get('product')
-            if prod_name in products_map:
-                p = products_map[prod_name]
-                
-                db_val = extract_number(p['serving_size'])
-                meal_val = extract_number(meal.get('quantity', ''))
-                
-                multiplier = 1.0
-                if db_val and meal_val and db_val > 0:
-                    multiplier = meal_val / db_val
-                    
-                day_cal += (p['calories'] or 0) * multiplier
-                day_prot += (p['protein'] or 0) * multiplier
-                day_fat += (p['fat'] or 0) * multiplier
-                day_carbs += (p['carbs'] or 0) * multiplier
+            prod_names_str = meal.get('product', '')
+            quants_str = meal.get('quantity', '')
+            
+            prod_list = [x.strip() for x in prod_names_str.split(',')]
+            quant_list = [x.strip() for x in quants_str.split(',')]
+            
+            for i, p_name in enumerate(prod_list):
+                matched_p = None
+                for db_name, p in products_map.items():
+                    if db_name.lower() == p_name.lower() or db_name.lower() in p_name.lower():
+                        matched_p = p
+                        break
+                        
+                if matched_p:
+                    db_val = extract_number(matched_p['serving_size'])
+                    meal_val = None
+                    if i < len(quant_list):
+                        meal_val = extract_number(quant_list[i])
+                        
+                    multiplier = 1.0
+                    if db_val and meal_val and db_val > 0:
+                        multiplier = meal_val / db_val
+                        
+                    day_cal += (matched_p['calories'] or 0) * multiplier
+                    day_prot += (matched_p['protein'] or 0) * multiplier
+                    day_fat += (matched_p['fat'] or 0) * multiplier
+                    day_carbs += (matched_p['carbs'] or 0) * multiplier
                 
         day['totals'] = {
             'calories': round(day_cal),
@@ -429,15 +487,16 @@ def api_planner_generate():
     
     db = get_db()
     cursor = db.cursor()
-    cursor.execute('SELECT name, category, calories, protein, fat, carbs, sugar, sodium, serving_size, recipes FROM products WHERE is_active=1')
-    products = [dict(p) for p in cursor.fetchall()]
+    # Fetch minimal product data for the AI to keep prompt small and generation fast
+    cursor.execute('SELECT name, category, serving_size FROM products WHERE is_active=1')
+    products_for_llm = [dict(p) for p in cursor.fetchall()]
     
     try:
         response = ai_client.chat.completions.create(
             model="gemini-2.5-flash",
             messages=[{
                 "role": "user",
-                "content": f"You are a dietitian creating a {days}-day Indian meal plan using ONLY Amul dairy products from this list: {json.dumps(products)}. Goal: {goal}. Dietary restriction: {restriction}. For each day provide Breakfast, Lunch, Dinner, and Snack using Amul products. Include product name, quantity, a simple 1-line preparation tip, and the recipe JSON (from the product's 'recipes' field) for each product used. Return ONLY valid JSON with structure: {{ \"days\": [{{ \"day\": \"Day 1\", \"meals\": {{ \"breakfast\": {{\"product\":\"\", \"quantity\":\"\", \"tip\":\"\", \"recipe\":{{...}} }}, \"lunch\": {{...}}, \"dinner\": {{...}}, \"snack\": {{...}} }} }}] }}. No extra text."
+                "content": f"You are a dietitian creating a {days}-day Indian meal plan using ONLY Amul dairy products from this list: {json.dumps(products_for_llm)}. Goal: {goal}. Dietary restriction: {restriction}. For each day provide Breakfast, Lunch, Dinner, and Snack using Amul products. Include product name, quantity, and a simple 1-line preparation tip. Return ONLY valid JSON with structure: {{ \"days\": [{{ \"day\": \"Day 1\", \"meals\": {{ \"breakfast\": {{\"product\":\"\", \"quantity\":\"\", \"tip\":\"\"}}, \"lunch\": {{...}}, \"dinner\": {{...}}, \"snack\": {{...}} }} }}] }}. No extra text."
             }]
         )
         
@@ -450,6 +509,19 @@ def api_planner_generate():
         plan_data = json.loads(ai_response_text)
         plan_data['goal'] = goal
         plan_data['restriction'] = restriction
+        
+        # Inject recipes from DB manually so the AI doesn't have to generate them (speeds up by ~5x)
+        cursor.execute('SELECT name, recipes FROM products WHERE is_active=1')
+        product_recipes = {p['name']: p['recipes'] for p in cursor.fetchall()}
+        
+        for day in plan_data.get('days', []):
+            for meal_key, meal_info in day.get('meals', {}).items():
+                prod_name_str = meal_info.get('product', '')
+                # Find the first matching recipe
+                for p_name, recipe_json in product_recipes.items():
+                    if p_name.lower() in prod_name_str.lower() and recipe_json != '[]' and recipe_json is not None:
+                        meal_info['recipe'] = recipe_json
+                        break
         
         # Calculate targets and daily totals
         cursor.execute('SELECT * FROM health_profiles WHERE user_id = ?', (session['user_id'],))

@@ -162,6 +162,21 @@ def init_db():
         )
     ''')
 
+    # Create user_progress_logs table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS user_progress_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            date DATE,
+            weight REAL,
+            calories_consumed INTEGER,
+            protein_consumed INTEGER,
+            logged_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id),
+            UNIQUE(user_id, date)
+        )
+    ''')
+
     # Create product_recommendations table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS product_recommendations (

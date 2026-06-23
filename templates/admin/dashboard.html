@@ -187,6 +187,13 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", () => {
+        // Global Chart Defaults
+        Chart.defaults.font.family = 'Inter, sans-serif';
+        Chart.defaults.color = '#475569';
+        Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(15, 23, 42, 0.9)';
+        Chart.defaults.plugins.tooltip.padding = 10;
+        Chart.defaults.plugins.tooltip.cornerRadius = 8;
+
         // Goals mappings
         const goalsMap = {
             'weight_loss': 'Weight Loss',
@@ -208,6 +215,11 @@
 
         // 1. Most Viewed Products Bar Chart (Horizontal)
         const ctxViews = document.getElementById('productViewsChart').getContext('2d');
+        
+        let gradViews = ctxViews.createLinearGradient(0, 0, 400, 0);
+        gradViews.addColorStop(0, 'rgba(227, 30, 36, 0.9)');
+        gradViews.addColorStop(1, 'rgba(255, 99, 104, 0.9)');
+
         new Chart(ctxViews, {
             type: 'bar',
             data: {
@@ -215,33 +227,30 @@
                 datasets: [{
                     label: 'Product Detail Views',
                     data: viewsData,
-                    backgroundColor: 'rgba(227, 30, 36, 0.8)', // Amul Red
-                    borderColor: 'rgb(227, 30, 36)',
-                    borderWidth: 1.5,
-                    borderRadius: 6
+                    backgroundColor: gradViews,
+                    borderRadius: 8,
+                    barPercentage: 0.7
                 }]
             },
             options: {
                 indexAxis: 'y',
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false }
-                },
+                plugins: { legend: { display: false } },
                 scales: {
-                    x: { 
-                        beginAtZero: true,
-                        grid: { drawOnChartArea: false }
-                    },
-                    y: {
-                        grid: { display: false }
-                    }
+                    x: { beginAtZero: true, grid: { drawBorder: false, color: '#f1f5f9' } },
+                    y: { grid: { display: false } }
                 }
             }
         });
 
         // 2. Most Recommended Products Bar Chart (Horizontal)
         const ctxRecs = document.getElementById('productRecsChart').getContext('2d');
+        
+        let gradRecs = ctxRecs.createLinearGradient(0, 0, 400, 0);
+        gradRecs.addColorStop(0, 'rgba(46, 204, 113, 0.9)');
+        gradRecs.addColorStop(1, 'rgba(88, 214, 141, 0.9)');
+
         new Chart(ctxRecs, {
             type: 'bar',
             data: {
@@ -249,27 +258,19 @@
                 datasets: [{
                     label: 'Times Recommended',
                     data: recsData,
-                    backgroundColor: 'rgba(46, 204, 113, 0.8)', // Nutri Green
-                    borderColor: 'rgb(46, 204, 113)',
-                    borderWidth: 1.5,
-                    borderRadius: 6
+                    backgroundColor: gradRecs,
+                    borderRadius: 8,
+                    barPercentage: 0.7
                 }]
             },
             options: {
                 indexAxis: 'y',
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false }
-                },
+                plugins: { legend: { display: false } },
                 scales: {
-                    x: { 
-                        beginAtZero: true,
-                        grid: { drawOnChartArea: false }
-                    },
-                    y: {
-                        grid: { display: false }
-                    }
+                    x: { beginAtZero: true, grid: { drawBorder: false, color: '#f1f5f9' } },
+                    y: { grid: { display: false } }
                 }
             }
         });
@@ -284,12 +285,12 @@
                     data: goalsData,
                     backgroundColor: [
                         '#E31E24', // Red
-                        '#3498DB', // Blue
-                        '#F1C40F', // Yellow
-                        '#2ECC71'  // Green
+                        '#3B82F6', // Blue
+                        '#F59E0B', // Amber
+                        '#10B981'  // Emerald
                     ],
-                    borderWidth: 2,
-                    hoverOffset: 6
+                    borderWidth: 0,
+                    hoverOffset: 8
                 }]
             },
             options: {
@@ -297,14 +298,12 @@
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        position: 'bottom',
-                        labels: {
-                            boxWidth: 12,
-                            font: { size: 11, family: 'Inter' }
-                        }
+                        position: 'right',
+                        labels: { padding: 20, usePointStyle: true, pointStyle: 'circle' }
                     }
                 },
-                cutout: '65%'
+                cutout: '70%',
+                layout: { padding: 10 }
             }
         });
     });

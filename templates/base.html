@@ -6,6 +6,11 @@
     <title>{% block title %}AmulNutriAI - AI Nutrition Assistant{% endblock %}</title>
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="/static/images/products/placeholder.png">
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+    
     <!-- Main CSS stylesheet -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     {% block styles %}{% endblock %}
@@ -25,6 +30,9 @@
                     <li><a href="/scanner">Image Scanner</a></li>
                     <li><a href="/diet">Diet Profile</a></li>
                     <li><a href="/planner">Meal Planner</a></li>
+                    {% if session.get('user_id') %}
+                    <li><a href="/dashboard" style="color: var(--primary-color); font-weight: 600;">Dashboard</a></li>
+                    {% endif %}
                 </ul>
             </nav>
             

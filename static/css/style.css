@@ -6,20 +6,20 @@
     --primary-hover: #c1151a;
     --primary-light: rgba(227, 30, 36, 0.1);
     
-    --bg-base: #FAFAFA;
+    --bg-base: #F8FAFC;
     --bg-surface: #FFFFFF;
     --bg-card: #FFFFFF;
-    --bg-alt: #F3F4F6;
+    --bg-alt: #F1F5F9;
     
-    --text-primary: #1F2937;
-    --text-secondary: #4B5563;
-    --text-light: #9CA3AF;
+    --text-primary: #0F172A;
+    --text-secondary: #475569;
+    --text-light: #94A3B8;
     --text-white: #FFFFFF;
     
-    --border-color: #E5E7EB;
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --border-color: #E2E8F0;
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.05);
+    --shadow-lg: 0 15px 35px rgba(0, 0, 0, 0.05);
     
     --radius-sm: 6px;
     --radius-md: 12px;
@@ -53,6 +53,16 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+}
+
+@keyframes slideUpFade {
+    0% { transform: translateY(20px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+}
+
+main {
+    animation: slideUpFade 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+    flex-grow: 1;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -174,7 +184,8 @@ header {
 
 .btn-primary:hover {
     background-color: var(--primary-hover);
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(227, 30, 36, 0.2);
 }
 
 .btn-secondary {
@@ -184,7 +195,10 @@ header {
 }
 
 .btn-secondary:hover {
-    background-color: var(--border-color);
+    background-color: var(--bg-alt);
+    border-color: #CBD5E1;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.03);
 }
 
 .btn-danger {
@@ -1078,7 +1092,7 @@ footer p {
     background-color: var(--bg-surface);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
-    overflow-x: auto;
+    overflow: hidden;
     box-shadow: var(--shadow-lg);
     margin-top: 2rem;
     display: none;

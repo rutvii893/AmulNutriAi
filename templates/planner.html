@@ -59,20 +59,22 @@
             </button>
         </div>
         
-        <table class="planner-table">
-            <thead>
-                <tr>
-                    <th>Day</th>
-                    <th>Breakfast</th>
-                    <th>Lunch</th>
-                    <th>Dinner</th>
-                    <th>Snack</th>
-                </tr>
-            </thead>
-            <tbody id="planner-table-body">
-                <!-- Dynamically generated rows -->
-            </tbody>
-        </table>
+        <div class="table-scroll-wrapper" style="overflow-x: auto;">
+            <table class="planner-table">
+                <thead>
+                    <tr>
+                        <th style="min-width: 180px;">Day</th>
+                        <th style="min-width: 220px;">Breakfast</th>
+                        <th style="min-width: 220px;">Lunch</th>
+                        <th style="min-width: 220px;">Dinner</th>
+                        <th style="min-width: 220px;">Snack</th>
+                    </tr>
+                </thead>
+                <tbody id="planner-table-body">
+                    <!-- Dynamically generated rows -->
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
