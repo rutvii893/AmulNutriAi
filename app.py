@@ -415,63 +415,6 @@ def calculate_dietary_targets(profile):
         'fat': round((target_calories * f_pct) / 9)
     }
 
-def calculate_plan_daily_totals(plan_data):
-    """
-    Computes actual macros for each day based on database product entries
-    """
-    db = get_db()
-    cursor = db.cursor()
-    cursor.execute('SELECT name, calories, protein, fat, carbs, serving_size FROM products WHERE is_active=1')
-    products_map = {p['name']: p for p in cursor.fetchall()}
-    
-    def extract_number(s):
-        if not s:
-            return None
-        match = re.search(r'([\d.]+)', s)
-        return float(match.group(1)) if match else None
-
-    for day in plan_data.get('days', []):
-        day_cal = 0.0
-        day_prot = 0.0
-        day_fat = 0.0
-        day_carbs = 0.0
-        
-        for meal in day.get('meals', {}).values():
-            prod_names_str = meal.get('product', '')
-            quants_str = meal.get('quantity', '')
-            
-            prod_list = [x.strip() for x in prod_names_str.split(',')]
-            quant_list = [x.strip() for x in quants_str.split(',')]
-            
-            for i, p_name in enumerate(prod_list):
-                matched_p = None
-                for db_name, p in products_map.items():
-                    if db_name.lower() == p_name.lower() or db_name.lower() in p_name.lower():
-                        matched_p = p
-                        break
-                        
-                if matched_p:
-                    db_val = extract_number(matched_p['serving_size'])
-                    meal_val = None
-                    if i < len(quant_list):
-                        meal_val = extract_number(quant_list[i])
-                        
-                    multiplier = 1.0
-                    if db_val and meal_val and db_val > 0:
-                        multiplier = meal_val / db_val
-                        
-                    day_cal += (matched_p['calories'] or 0) * multiplier
-                    day_prot += (matched_p['protein'] or 0) * multiplier
-                    day_fat += (matched_p['fat'] or 0) * multiplier
-                    day_carbs += (matched_p['carbs'] or 0) * multiplier
-                
-        day['totals'] = {
-            'calories': round(day_cal),
-            'protein': round(day_prot),
-            'fat': round(day_fat),
-            'carbs': round(day_carbs)
-        }
-
 @app.route('/planner')
 @login_required
 def planner():
@@ -496,7 +439,7 @@ def api_planner_generate():
             model="gemini-2.5-flash",
             messages=[{
                 "role": "user",
-                "content": f"You are a dietitian creating a {days}-day Indian meal plan using ONLY Amul dairy products from this list: {json.dumps(products_for_llm)}. Goal: {goal}. Dietary restriction: {restriction}. For each day provide Breakfast, Lunch, Dinner, and Snack using Amul products. Include product name, quantity, and a simple 1-line preparation tip. Return ONLY valid JSON with structure: {{ \"days\": [{{ \"day\": \"Day 1\", \"meals\": {{ \"breakfast\": {{\"product\":\"\", \"quantity\":\"\", \"tip\":\"\"}}, \"lunch\": {{...}}, \"dinner\": {{...}}, \"snack\": {{...}} }} }}] }}. No extra text."
+                "content": f"You are a dietitian creating a {days}-day Indian meal plan. Goal: {goal}. Dietary restriction: {restriction}. Incorporate Amul dairy products from this list where appropriate: {json.dumps(products_for_llm)}, but you MAY include any other healthy ingredients or meals even without Amul products. For each day provide Breakfast, Lunch, Dinner, and Snack. For each day, provide the total macros (calories, protein, fat, carbs) estimated for that day. For each meal, include the primary dish name in 'product', quantity, a 1-line preparation tip, and a full recipe. Return ONLY valid JSON with exactly this structure: {{ \"days\": [{{ \"day\": \"Day 1\", \"totals\": {{\"calories\": 2000, \"protein\": 100, \"fat\": 50, \"carbs\": 200}}, \"meals\": {{ \"breakfast\": {{\"product\":\"\", \"quantity\":\"\", \"tip\":\"\", \"recipe\": {{\"title\":\"\", \"ingredients\":[\"\"], \"steps\":[\"\"]}}}}, \"lunch\": {{...}}, \"dinner\": {{...}}, \"snack\": {{...}} }} }}] }}. No extra text."
             }]
         )
         
@@ -510,25 +453,11 @@ def api_planner_generate():
         plan_data['goal'] = goal
         plan_data['restriction'] = restriction
         
-        # Inject recipes from DB manually so the AI doesn't have to generate them (speeds up by ~5x)
-        cursor.execute('SELECT name, recipes FROM products WHERE is_active=1')
-        product_recipes = {p['name']: p['recipes'] for p in cursor.fetchall()}
-        
-        for day in plan_data.get('days', []):
-            for meal_key, meal_info in day.get('meals', {}).items():
-                prod_name_str = meal_info.get('product', '')
-                # Find the first matching recipe
-                for p_name, recipe_json in product_recipes.items():
-                    if p_name.lower() in prod_name_str.lower() and recipe_json != '[]' and recipe_json is not None:
-                        meal_info['recipe'] = recipe_json
-                        break
-        
-        # Calculate targets and daily totals
+        # Calculate targets
         cursor.execute('SELECT * FROM health_profiles WHERE user_id = ?', (session['user_id'],))
         profile = cursor.fetchone()
         targets = calculate_dietary_targets(profile)
         plan_data['targets'] = targets
-        calculate_plan_daily_totals(plan_data)
         
         cursor.execute('INSERT INTO meal_plans (user_id, plan_json, goal) VALUES (?, ?, ?)',
                        (session['user_id'], json.dumps(plan_data), goal))
